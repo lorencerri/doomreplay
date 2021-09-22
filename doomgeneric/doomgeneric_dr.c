@@ -1,0 +1,213 @@
+//doomgeneric for soso os
+
+#include "doomkeys.h"
+#include "doomgeneric.h"
+#include "doomreplay.h"
+
+#include "dr_font.h"
+
+#include "i_timer.h"
+
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+
+#include <stdbool.h>
+
+#define KEYQUEUE_SIZE 16
+
+static unsigned short s_KeyQueue[KEYQUEUE_SIZE];
+static unsigned int s_KeyQueueWriteIndex = 0;
+static unsigned int s_KeyQueueReadIndex = 0;
+
+static FILE * g_fp = NULL;
+static const int64_t g_dt = 1000000;
+static const int64_t g_dt_gs = g_dt/TICRATE;
+static int64_t g_time_us  = 0;
+static int32_t g_frame = 0;
+static replay_data_t g_replay_data;
+static dr_keys_t g_pressed_last;
+static dr_keys_t g_key_map;
+
+static void addConvertedKeyToQueue(int pressed, unsigned char key) {
+    unsigned short keyData = (pressed << 8) | key;
+
+    s_KeyQueue[s_KeyQueueWriteIndex] = keyData;
+    s_KeyQueueWriteIndex++;
+    s_KeyQueueWriteIndex %= KEYQUEUE_SIZE;
+}
+
+static void handleKeyInput() {
+    for (int i = 0; i < dr_key_COUNT; ++i) {
+        if (g_replay_data.frames[g_frame].pressed[i] != g_pressed_last[i]) {
+            int pressed = g_pressed_last[i] ? 0 : 1;
+            addConvertedKeyToQueue(pressed, g_key_map[i]);
+        }
+    }
+
+    memcpy(g_pressed_last, g_replay_data.frames[g_frame].pressed, sizeof(dr_keys_t));
+}
+
+
+void DG_Init() {}
+
+void DR_Init(replay_data_t replay_data) {
+    g_key_map[dr_key_escape] = KEY_ESCAPE;
+    g_key_map[dr_key_enter ] = KEY_ENTER;
+    g_key_map[dr_key_left  ] = KEY_LEFTARROW;
+    g_key_map[dr_key_right ] = KEY_RIGHTARROW;
+    g_key_map[dr_key_up    ] = KEY_UPARROW;
+    g_key_map[dr_key_down  ] = KEY_DOWNARROW;
+    g_key_map[dr_key_alt   ] = KEY_LALT;
+    g_key_map[dr_key_shift ] = KEY_RSHIFT;
+    g_key_map[dr_key_use   ] = KEY_USE;
+    g_key_map[dr_key_fire  ] = KEY_FIRE;
+    g_key_map[dr_key_0     ] = '0';
+    g_key_map[dr_key_1     ] = '1';
+    g_key_map[dr_key_2     ] = '2';
+    g_key_map[dr_key_3     ] = '3';
+    g_key_map[dr_key_4     ] = '4';
+    g_key_map[dr_key_5     ] = '5';
+    g_key_map[dr_key_6     ] = '6';
+    g_key_map[dr_key_7     ] = '7';
+    g_key_map[dr_key_8     ] = '8';
+    g_key_map[dr_key_9     ] = '9';
+
+    g_replay_data = replay_data;
+
+    printf("\n\nSimulating %d frames - %g seconds\n", g_replay_data.n_frames, (float)(g_replay_data.n_frames)/TICRATE);
+}
+
+void DG_DrawFrame() {
+    if (g_frame >= g_replay_data.n_frames - g_replay_data.n_frames_record) {
+        if (g_fp == NULL) {
+            char ffmpegCommandLine[1024];
+
+            snprintf(ffmpegCommandLine, 1024,
+                     "ffmpeg"
+                     " -nostats "
+                     " -y -f rawvideo -framerate %d"
+                     " -s %dx%d"
+                     " -pix_fmt bgra -vcodec rawvideo -i -"
+                     " -vcodec h264"
+                     " -pix_fmt yuv420p"
+                     " %s", g_replay_data.framerate, DOOMGENERIC_RESX, DOOMGENERIC_RESY, g_replay_data.fname_output);
+
+            printf("Starting ffmpeg process: '%s'\n", ffmpegCommandLine);
+#ifdef _WIN32
+            const char * popenType = "wb";
+#else
+            const char * popenType = "w";
+#endif
+            g_fp = popen(ffmpegCommandLine, popenType);
+
+            if (g_fp == NULL) {
+                fprintf(stderr, "Failed to start ffmpeg\n");
+                exit(1);
+            }
+        }
+        if (g_fp) {
+            char t[32];
+            if (g_replay_data.render_frame) {
+                snprintf(t, 32, "%d", g_frame);
+            }
+            if (g_replay_data.render_input) {
+                unsigned char * pressed =  g_replay_data.frames[g_frame].pressed;
+                if (pressed[dr_key_escape]) strcat(t, "x");
+                if (pressed[dr_key_enter])  strcat(t, "e");
+                if (pressed[dr_key_left])   strcat(t, "l");
+                if (pressed[dr_key_right])  strcat(t, "r");
+                if (pressed[dr_key_up])     strcat(t, "u");
+                if (pressed[dr_key_down])   strcat(t, "d");
+                if (pressed[dr_key_alt])    strcat(t, "a");
+                if (pressed[dr_key_shift])  strcat(t, "s");
+                if (pressed[dr_key_use])    strcat(t, "p");
+                if (pressed[dr_key_fire])   strcat(t, "f");
+                if (pressed[dr_key_0])      strcat(t, "0");
+                if (pressed[dr_key_1])      strcat(t, "1");
+                if (pressed[dr_key_2])      strcat(t, "2");
+                if (pressed[dr_key_3])      strcat(t, "3");
+                if (pressed[dr_key_4])      strcat(t, "4");
+                if (pressed[dr_key_5])      strcat(t, "5");
+                if (pressed[dr_key_6])      strcat(t, "6");
+                if (pressed[dr_key_7])      strcat(t, "7");
+                if (pressed[dr_key_8])      strcat(t, "8");
+                if (pressed[dr_key_9])      strcat(t, "9");
+                if (pressed[dr_key_0])      strcat(t, "0");
+                if (pressed[dr_key_0])      strcat(t, "0");
+            }
+
+            int n = strlen(t);
+            if (n) {
+                uint32_t col = 0x0000FF00;
+                const int xoffs = 1;
+                const int yoffs = 1;
+                for (int i = 0; i < n; ++i) {
+                    for (int y = 0; y < FONT_SIZE_Y; ++y) {
+                        for (int x = 0; x < FONT_SIZE_X; ++x) {
+                            col = kFontRaster[(int)t[i]][y*FONT_SIZE_X + x];
+                            if (col) {
+                                col = col << 8;
+
+                                DG_ScreenBuffer[(yoffs + y)*DOOMGENERIC_RESX + (i*FONT_SIZE_X + xoffs + x)] = col;
+                            }
+                        }
+                    }
+                }
+            }
+
+            fwrite((char *) DG_ScreenBuffer, 4*DOOMGENERIC_RESX*DOOMGENERIC_RESY, 1, g_fp);
+        }
+    }
+
+    //printf("frame = %d\n", g_frame);
+    //printf("frame = %d, time = %d, x = %d, diff = %d\n",
+    //       g_frame, g_time_us/1000, g_time_us/g_dt_gs, g_time_us/g_dt_gs - g_frame);
+
+    if (g_frame < g_replay_data.n_frames) {
+        handleKeyInput();
+    } else {
+        if (g_fp) {
+            pclose(g_fp);
+            g_fp = NULL;
+        }
+        printf("Terminating ..\n");
+        exit(1);
+    }
+
+    g_frame++;
+
+    if (g_frame % 1000 == 0) {
+        printf("frame = %d\n", g_frame);
+    }
+}
+
+void DG_SleepMs(uint32_t ms) {}
+
+void DG_UpdateTime() {
+    g_time_us += g_dt_gs;
+}
+
+uint32_t DG_GetTicksMs() {
+    return g_time_us/(g_dt/1000);
+}
+
+int DG_GetKey(int* pressed, unsigned char* doomKey) {
+    if (s_KeyQueueReadIndex == s_KeyQueueWriteIndex){
+        //key queue is empty
+        return 0;
+    } else {
+        unsigned short keyData = s_KeyQueue[s_KeyQueueReadIndex];
+        s_KeyQueueReadIndex++;
+        s_KeyQueueReadIndex %= KEYQUEUE_SIZE;
+
+        *pressed = keyData >> 8;
+        *doomKey = keyData & 0xFF;
+
+        return 1;
+    }
+
+    return 0;
+}
+
+void DG_SetWindowTitle(const char * title) {}

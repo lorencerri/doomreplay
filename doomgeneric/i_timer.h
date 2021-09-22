@@ -20,7 +20,8 @@
 #ifndef __I_TIMER__
 #define __I_TIMER__
 
-#define TICRATE 35
+// change from 35 to 10 so that we have whole number of ms per frame
+#define TICRATE 10
 
 // Called by D_DoomLoop,
 // returns current time in tics.
@@ -37,6 +38,8 @@ void I_InitTimer(void);
 
 // Wait for vertical retrace or pause a bit.
 void I_WaitVBL(int count);
+
+void I_UpdateTime(void);
 
 #endif
 

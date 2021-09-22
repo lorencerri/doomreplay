@@ -93,3 +93,7 @@ void I_InitTimer(void)
     //SDL_Init(SDL_INIT_TIMER);
 }
 
+void I_UpdateTime(void)
+{
+	DG_UpdateTime();
+}

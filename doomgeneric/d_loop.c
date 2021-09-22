@@ -714,6 +714,8 @@ void TryRunTics (void)
     int	counts;
 
     // get real tics
+    I_UpdateTime();
+
     entertic = I_GetTime() / ticdup;
     realtics = entertic - oldentertics;
     oldentertics = entertic;
@@ -766,6 +768,7 @@ void TryRunTics (void)
 
     while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
     {
+        I_UpdateTime();
 	NetUpdate ();
 
         lowtic = GetLowTic();
