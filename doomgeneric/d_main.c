@@ -298,6 +298,7 @@ void D_Display (void)
     NetUpdate ();         // send out any new accumulation
 
 
+    wipe = false;
     // normal update
     if (!wipe)
     {
