@@ -388,5 +388,8 @@ void StatDump(void)
         }
     }
 #endif
+    return;
+    (void) (doom1_par_times);
+    (void) (doom2_par_times);
 }
 

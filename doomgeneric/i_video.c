@@ -374,6 +374,7 @@ int I_GetPaletteIndex (int r, int g, int b)
     }
 
     return best;
+    (void) (rcsid);
 }
 
 void I_BeginRead (void)
