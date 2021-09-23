@@ -34,7 +34,8 @@ typedef struct {
 typedef struct {
     int n_frames;
     int framerate;
-    int n_frames_record;
+    int n_start;
+    int n_record;
     int render_frame;
     int render_input;
     frame_data_t * frames;
@@ -43,5 +44,6 @@ typedef struct {
 } replay_data_t;
 
 void DR_Init(replay_data_t replay_data);
+int  DR_NeedRender(int f);
 
 #endif //DOOM_REPLAY

@@ -48,10 +48,11 @@ int main(int argc, char **argv)
 
     replay_data_t replay_data;
 
-    int pidx_input     = M_CheckParmWithArgs("-input", 1);
-    int pidx_output    = M_CheckParmWithArgs("-output", 1);
+    int pidx_input     = M_CheckParmWithArgs("-input",     1);
+    int pidx_output    = M_CheckParmWithArgs("-output",    1);
     int pidx_framerate = M_CheckParmWithArgs("-framerate", 1);
-    int pidx_nrecord   = M_CheckParmWithArgs("-nrecord", 1);
+    int pidx_nstart    = M_CheckParmWithArgs("-nstart",    1);
+    int pidx_nrecord   = M_CheckParmWithArgs("-nrecord",   1);
 
     if (!pidx_input) {
         fprintf(stderr, "Input file must be provided via '-input'\n");
@@ -76,14 +77,20 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    // n frames to record at the end of the replay
-    replay_data.n_frames_record = 10*replay_data.framerate;
-    if (pidx_nrecord) {
-        replay_data.n_frames_record = atoi(myargv[pidx_nrecord + 1]);
+    // start recording after n frames
+    replay_data.n_start = -1;
+    if (pidx_nstart) {
+        replay_data.n_start = atoi(myargv[pidx_nstart + 1]);
     }
 
-    if (replay_data.n_frames_record <= 0) {
-        fprintf(stderr, "Invalid nrecord: %d\n", replay_data.n_frames_record);
+    // n frames to record
+    replay_data.n_record = 10*replay_data.framerate;
+    if (pidx_nrecord) {
+        replay_data.n_record = atoi(myargv[pidx_nrecord + 1]);
+    }
+
+    if (replay_data.n_record <= 0) {
+        fprintf(stderr, "Invalid nrecord: %d\n", replay_data.n_record);
         return -1;
     }
 
@@ -122,7 +129,17 @@ int main(int argc, char **argv)
         };
     }
 
+    if (replay_data.n_start == -1) {
+        replay_data.n_start = replay_data.n_frames - replay_data.n_record;
+    }
+
     replay_data.frames = malloc(replay_data.n_frames*sizeof(frame_data_t));
+
+    for (int f = 0; f < replay_data.n_frames; ++f) {
+        for (int i = 0; i < dr_key_COUNT; ++i) {
+            replay_data.frames[f].pressed[i] = 0;
+        }
+    }
 
     int cur_frame = 0;
     for (int i = 0; i < fsize; ++i) {

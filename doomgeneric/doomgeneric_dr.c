@@ -21,8 +21,8 @@ static unsigned int s_KeyQueueWriteIndex = 0;
 static unsigned int s_KeyQueueReadIndex = 0;
 
 static FILE * g_fp = NULL;
-static const int64_t g_dt = 1000000;
-static const int64_t g_dt_gs = g_dt/TICRATE;
+static const int64_t g_dt = 35000;
+static const int64_t g_dt_gs = (g_dt/5)/TICRATE; // ensure at least 5 updates per frame
 static int64_t g_time_us  = 0;
 static int32_t g_frame = 0;
 static replay_data_t g_replay_data;
@@ -75,11 +75,26 @@ void DR_Init(replay_data_t replay_data) {
 
     g_replay_data = replay_data;
 
-    printf("\n\nSimulating %d frames - %g seconds\n", g_replay_data.n_frames, (float)(g_replay_data.n_frames)/TICRATE);
+    for (int i = 0; i < dr_key_COUNT; ++i) {
+        g_pressed_last[i] = 0;
+    }
+
+    printf("\n\n======= DOOM REPLAY ===========\n");
+    printf("Frames to simulate: %6d (%g seconds)\n", g_replay_data.n_frames, (float)(g_replay_data.n_frames)/TICRATE);
+    printf("Start frame:        %6d (%g seconds)\n", g_replay_data.n_start,  (float)(g_replay_data.n_start)/TICRATE);
+    printf("Frames to record:   %6d (%g seconds)\n", g_replay_data.n_record, (float)(g_replay_data.n_record)/TICRATE);
+    printf("Framerate:          %6d\n", g_replay_data.framerate);
+    printf("Render frame idx:   %6d\n", g_replay_data.render_frame);
+    printf("Render input:       %6d\n", g_replay_data.render_input);
+    printf("===============================\n");
+}
+
+int DR_NeedRender(int f) {
+    return g_frame >= g_replay_data.n_start - f;
 }
 
 void DG_DrawFrame() {
-    if (g_frame >= g_replay_data.n_frames - g_replay_data.n_frames_record) {
+    if (DR_NeedRender(0)) {
         if (g_fp == NULL) {
             char ffmpegCommandLine[1024];
 
@@ -108,6 +123,7 @@ void DG_DrawFrame() {
         }
         if (g_fp) {
             char t[32];
+            t[0] = 0;
             if (g_replay_data.render_frame) {
                 snprintf(t, 32, "%d", g_frame);
             }
@@ -162,9 +178,9 @@ void DG_DrawFrame() {
 
     //printf("frame = %d\n", g_frame);
     //printf("frame = %d, time = %d, x = %d, diff = %d\n",
-    //       g_frame, g_time_us/1000, g_time_us/g_dt_gs, g_time_us/g_dt_gs - g_frame);
+    //       g_frame, g_time_us/(g_dt/1000), g_time_us/g_dt_gs, g_time_us/g_dt_gs - g_frame);
 
-    if (g_frame < g_replay_data.n_frames) {
+    if (g_frame < g_replay_data.n_start + g_replay_data.n_record - 1 && g_frame < g_replay_data.n_frames) {
         handleKeyInput();
     } else {
         if (g_fp) {

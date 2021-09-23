@@ -768,9 +768,9 @@ void TryRunTics (void)
 
     while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
     {
-        I_UpdateTime();
 	NetUpdate ();
 
+        I_UpdateTime();
         lowtic = GetLowTic();
 
 	if (lowtic < gametic/ticdup)
@@ -781,10 +781,10 @@ void TryRunTics (void)
 
 	if (I_GetTime() / ticdup - entertic > 0)
 	{
-	    return;
+        continue;
 	}
 
-        I_Sleep(1);
+        //I_Sleep(1);
     }
 
     // run the count * ticdup dics

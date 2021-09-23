@@ -74,6 +74,8 @@
 
 #include "d_main.h"
 
+#include "doomreplay.h"
+
 //
 // D-DoomLoop()
 // Not a globally visible function,
@@ -236,6 +238,7 @@ void D_Display (void)
 		break;
     }
     
+    if (DR_NeedRender(100)) {
     // draw buffered stuff to screen
     I_UpdateNoBlit ();
     
@@ -275,6 +278,7 @@ void D_Display (void)
 
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
+    }
 
     menuactivestate = menuactive;
     viewactivestate = viewactive;
@@ -298,7 +302,6 @@ void D_Display (void)
     NetUpdate ();         // send out any new accumulation
 
 
-    wipe = false;
     // normal update
     if (!wipe)
     {
@@ -315,9 +318,9 @@ void D_Display (void)
     {
 	do
 	{
+        I_UpdateTime();
 	    nowtime = I_GetTime ();
 	    tics = nowtime - wipestart;
-            I_Sleep(1);
 	} while (tics <= 0);
         
 	wipestart = nowtime;

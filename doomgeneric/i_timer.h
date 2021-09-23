@@ -20,8 +20,7 @@
 #ifndef __I_TIMER__
 #define __I_TIMER__
 
-// change from 35 to 10 so that we have whole number of ms per frame
-#define TICRATE 10
+#define TICRATE 35
 
 // Called by D_DoomLoop,
 // returns current time in tics.
