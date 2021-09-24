@@ -40,6 +40,10 @@
 #include "net_sdl.h"
 #include "net_loop.h"
 
+#ifdef DOOMREPLAY
+#include "doomreplay.h"
+#endif
+
 // The complete set of data for a particular tic.
 
 typedef struct
@@ -713,9 +717,12 @@ void TryRunTics (void)
     int	availabletics;
     int	counts;
 
-    // get real tics
-    I_UpdateTime();
+#ifdef DOOMREPLAY
+    // update the artificial clock
+    DR_UpdateTime();
+#endif
 
+    // get real tics
     entertic = I_GetTime() / ticdup;
     realtics = entertic - oldentertics;
     oldentertics = entertic;
@@ -770,7 +777,9 @@ void TryRunTics (void)
     {
 	NetUpdate ();
 
-        I_UpdateTime();
+#ifdef DOOMREPLAY
+        DR_UpdateTime();
+#endif
         lowtic = GetLowTic();
 
 	if (lowtic < gametic/ticdup)
@@ -781,10 +790,16 @@ void TryRunTics (void)
 
 	if (I_GetTime() / ticdup - entertic > 0)
 	{
+#ifdef DOOMREPLAY
+        // I don't think there is any point to return here.
+        // Instead - continue and exit the loop
         continue;
+#else
+        return;
+#endif
 	}
 
-        //I_Sleep(1);
+        I_Sleep(1);
     }
 
     // run the count * ticdup dics

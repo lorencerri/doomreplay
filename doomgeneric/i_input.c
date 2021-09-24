@@ -225,7 +225,10 @@ static const char shiftxform[] =
 static unsigned char TranslateKey(unsigned char key)
 {
 	return key;
-    (void) (at_to_doom);
+#ifdef DOOMREPLAY
+	// fix compile warning
+	(void) (at_to_doom);
+#endif
 
 	/*
     if (key < sizeof(at_to_doom))

@@ -1,5 +1,5 @@
-#ifndef DOOM_REPLAY
-#define DOOM_REPLAY
+#ifndef DOOM_REPLAY_H
+#define DOOM_REPLAY_H
 
 typedef unsigned char dr_keys_t[24];
 
@@ -56,5 +56,6 @@ typedef struct {
 void DR_Init(replay_data_t replay_data);
 int  DR_NeedRender(int f);
 void DR_ProcessInput();
+void DR_UpdateTime(void);
 
-#endif //DOOM_REPLAY
+#endif //DOOM_REPLAY_H

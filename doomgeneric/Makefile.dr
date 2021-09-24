@@ -15,6 +15,7 @@ CC=clang  # gcc or g++
 CFLAGS+=-O3 $(INCLUDES)
 LDFLAGS+=-Wl,-dead_strip
 CFLAGS+=-O3 -Wall -DNORMALUNIX -DLINUX -DSNDSERV # -DUSEASM
+CFLAGS+=-DDOOMREPLAY
 LIBS+=-lm -lc
 
 # subdirectory for objects

@@ -1,5 +1,3 @@
-//doomgeneric for soso os
-
 #include "doomkeys.h"
 #include "doomgeneric.h"
 #include "doomreplay.h"
@@ -114,6 +112,10 @@ int DR_NeedRender(int f) {
     return g_frame >= g_replay_data.n_start - f;
 }
 
+void DR_UpdateTime() {
+    g_time_us += g_dt_gs;
+}
+
 void DG_Init() {}
 
 void DG_DrawFrame() {
@@ -207,10 +209,8 @@ void DG_DrawFrame() {
     }
 }
 
-void DG_SleepMs(uint32_t ms) {}
-
-void DG_UpdateTime() {
-    g_time_us += g_dt_gs;
+void DG_SleepMs(uint32_t ms) {
+    // noop
 }
 
 uint32_t DG_GetTicksMs() {

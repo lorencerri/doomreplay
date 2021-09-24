@@ -19,14 +19,16 @@
 //#include "config.h"
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 //#include "doomtype.h"
 //#include "i_system.h"
 #include "m_argv.h"
-#include "doomreplay.h"
 
+#ifdef DOOMREPLAY
+#include <stdlib.h>
+#include <string.h>
+#include "doomreplay.h"
+#endif
 //
 // D_DoomMain()
 // Not a globally visible function, just included for source reference,
@@ -47,6 +49,7 @@ int main(int argc, char **argv)
     myargc = argc;
     myargv = argv;
 
+#ifdef DOOMREPLAY
     replay_data_t replay_data;
 
     int pidx_input     = M_CheckParmWithArgs("-input",     1);
@@ -226,6 +229,7 @@ int main(int argc, char **argv)
     }
 
     DR_Init(replay_data);
+#endif
 
     M_FindResponseFile();
 
