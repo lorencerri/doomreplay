@@ -20,14 +20,34 @@ static unsigned short s_KeyQueue[KEYQUEUE_SIZE];
 static unsigned int s_KeyQueueWriteIndex = 0;
 static unsigned int s_KeyQueueReadIndex = 0;
 
-static FILE * g_fp = NULL;
-static const int64_t g_dt = 35000;
+static FILE * g_fp           = NULL;
+static const int64_t g_dt    = 35000;
 static const int64_t g_dt_gs = (g_dt/5)/TICRATE; // ensure at least 5 updates per frame
-static int64_t g_time_us  = 0;
-static int32_t g_frame = 0;
+static int64_t g_time_us     = 0;
+static int32_t g_frame       = 0;    // frame index
+static int32_t g_username    = 0; // username index
+
 static replay_data_t g_replay_data;
 static dr_keys_t g_pressed_last;
 static dr_keys_t g_key_map;
+
+static void renderText(uint32_t * screen, const char * text, int xoffs, int yoffs, int ecol) {
+    int n = strlen(text);
+    if (n) {
+        uint32_t col = 0x0000FF00;
+        for (int i = 0; i < n; ++i) {
+            for (int y = 0; y < FONT_SIZE_Y; ++y) {
+                for (int x = 0; x < FONT_SIZE_X; ++x) {
+                    col = kFontRaster[(int)text[i]][y*FONT_SIZE_X + x];
+                    if (col) {
+                        if (ecol == 0) col = col << 8; // green
+                        screen[(yoffs + y)*DOOMGENERIC_RESX + (i*FONT_SIZE_X + xoffs + x)] = col;
+                    }
+                }
+            }
+        }
+    }
+}
 
 static void addConvertedKeyToQueue(int pressed, unsigned char key) {
     unsigned short keyData = (pressed << 8) | key;
@@ -84,8 +104,10 @@ void DR_Init(replay_data_t replay_data) {
     printf("Start frame:        %6d (%g seconds)\n", g_replay_data.n_start,  (float)(g_replay_data.n_start)/TICRATE);
     printf("Frames to record:   %6d (%g seconds)\n", g_replay_data.n_record, (float)(g_replay_data.n_record)/TICRATE);
     printf("Framerate:          %6d\n", g_replay_data.framerate);
+    printf("Usernames:          %6d\n", g_replay_data.n_usernames);
     printf("Render frame idx:   %6d\n", g_replay_data.render_frame);
     printf("Render input:       %6d\n", g_replay_data.render_input);
+    printf("Render username:    %6d\n", g_replay_data.render_username);
     printf("===============================\n");
 }
 
@@ -153,23 +175,11 @@ void DG_DrawFrame() {
                 if (pressed[dr_key_0])      strcat(t, "0");
             }
 
-            int n = strlen(t);
-            if (n) {
-                uint32_t col = 0x0000FF00;
-                const int xoffs = 1;
-                const int yoffs = 1;
-                for (int i = 0; i < n; ++i) {
-                    for (int y = 0; y < FONT_SIZE_Y; ++y) {
-                        for (int x = 0; x < FONT_SIZE_X; ++x) {
-                            col = kFontRaster[(int)t[i]][y*FONT_SIZE_X + x];
-                            if (col) {
-                                col = col << 8;
+            renderText(DG_ScreenBuffer, t, 1, 0, 0);
 
-                                DG_ScreenBuffer[(yoffs + y)*DOOMGENERIC_RESX + (i*FONT_SIZE_X + xoffs + x)] = col;
-                            }
-                        }
-                    }
-                }
+            if (g_replay_data.render_username) {
+                while (g_username < g_replay_data.n_usernames - 1 && g_frame >= g_replay_data.usernames[g_username + 1].frame_start) ++g_username;
+                renderText(DG_ScreenBuffer, g_replay_data.usernames[g_username].buf, 1, FONT_SIZE_Y, 0);
             }
 
             fwrite((char *) DG_ScreenBuffer, 4*DOOMGENERIC_RESX*DOOMGENERIC_RESY, 1, g_fp);

@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 //#include "doomtype.h"
 //#include "i_system.h"
@@ -106,6 +107,12 @@ int main(int argc, char **argv)
         replay_data.render_input = 1;
     }
 
+    // render the username that provided the current input on the screen ?
+    replay_data.render_username = 0;
+    if (M_CheckParm("-render_username") > 0) {
+        replay_data.render_username = 1;
+    }
+
     const char * param_input = myargv[pidx_input + 1];
 
     FILE *f = fopen(param_input, "rb");
@@ -123,17 +130,38 @@ int main(int argc, char **argv)
     fclose(f);
 
     replay_data.n_frames = 1;
+    replay_data.n_usernames = 1;
+
+    int in_username = 0;
     for (int i = 0; i < fsize; ++i) {
         switch (input[i]) {
-            case ',': ++replay_data.n_frames; continue;
+            case '@': {
+                          if (in_username == 0) {
+                              in_username = 1;
+                          } else {
+                              ++replay_data.n_usernames;
+                              in_username = 0;
+                          }
+                      } break;
+            case ',': {
+                          if (in_username == 0) {
+                              ++replay_data.n_frames;
+                          }
+                      } break;
         };
+    }
+
+    if (in_username) {
+        fprintf(stderr, "Invalid input format : username tags are invalid");
+        return -3;
     }
 
     if (replay_data.n_start == -1) {
         replay_data.n_start = replay_data.n_frames - replay_data.n_record;
     }
 
-    replay_data.frames = malloc(replay_data.n_frames*sizeof(frame_data_t));
+    replay_data.frames    = malloc(replay_data.n_frames*sizeof(frame_data_t));
+    replay_data.usernames = malloc(replay_data.n_usernames*sizeof(username_data_t));
 
     for (int f = 0; f < replay_data.n_frames; ++f) {
         for (int i = 0; i < dr_key_COUNT; ++i) {
@@ -141,32 +169,60 @@ int main(int argc, char **argv)
         }
     }
 
-    int cur_frame = 0;
+    for (int i = 0; i < replay_data.n_usernames; ++i) {
+        replay_data.usernames[i].len    = 0;
+        replay_data.usernames[i].buf[0] = 0;
+    }
+
+    int cur_frame    = 0;
+    int cur_username = 0;
+
     for (int i = 0; i < fsize; ++i) {
-        frame_data_t * frame = replay_data.frames + cur_frame;
-        switch (input[i]) {
-            case ',': ++cur_frame; continue;
-            case 'x': frame->pressed[dr_key_escape] = 1; continue;
-            case 'e': frame->pressed[dr_key_enter]  = 1; continue;
-            case 'l': frame->pressed[dr_key_left]   = 1; continue;
-            case 'r': frame->pressed[dr_key_right]  = 1; continue;
-            case 'u': frame->pressed[dr_key_up]     = 1; continue;
-            case 'd': frame->pressed[dr_key_down]   = 1; continue;
-            case 'a': frame->pressed[dr_key_alt]    = 1; continue;
-            case 's': frame->pressed[dr_key_shift]  = 1; continue;
-            case 'p': frame->pressed[dr_key_use]    = 1; continue;
-            case 'f': frame->pressed[dr_key_fire]   = 1; continue;
-            case '0': frame->pressed[dr_key_0]      = 1; continue;
-            case '1': frame->pressed[dr_key_1]      = 1; continue;
-            case '2': frame->pressed[dr_key_2]      = 1; continue;
-            case '3': frame->pressed[dr_key_3]      = 1; continue;
-            case '4': frame->pressed[dr_key_4]      = 1; continue;
-            case '5': frame->pressed[dr_key_5]      = 1; continue;
-            case '6': frame->pressed[dr_key_6]      = 1; continue;
-            case '7': frame->pressed[dr_key_7]      = 1; continue;
-            case '8': frame->pressed[dr_key_8]      = 1; continue;
-            case '9': frame->pressed[dr_key_9]      = 1; continue;
-        };
+
+        frame_data_t    * frame    = replay_data.frames + cur_frame;
+        username_data_t * username = replay_data.usernames + cur_username;
+
+        if (in_username) {
+            switch (input[i]) {
+                case '@': {
+                              in_username = 0;
+                          } break;
+                default: {
+                             username->buf[username->len] = input[i];
+                             username->len++;
+                             username->buf[username->len] = 0;
+                         } break;
+            };
+        } else {
+            switch (input[i]) {
+                case '@': {
+                              in_username = 1;
+                              cur_username++;
+                              replay_data.usernames[cur_username].frame_start = cur_frame;
+                          } break;
+                case ',': ++cur_frame;                       break;
+                case 'x': frame->pressed[dr_key_escape] = 1; break;
+                case 'e': frame->pressed[dr_key_enter]  = 1; break;
+                case 'l': frame->pressed[dr_key_left]   = 1; break;
+                case 'r': frame->pressed[dr_key_right]  = 1; break;
+                case 'u': frame->pressed[dr_key_up]     = 1; break;
+                case 'd': frame->pressed[dr_key_down]   = 1; break;
+                case 'a': frame->pressed[dr_key_alt]    = 1; break;
+                case 's': frame->pressed[dr_key_shift]  = 1; break;
+                case 'p': frame->pressed[dr_key_use]    = 1; break;
+                case 'f': frame->pressed[dr_key_fire]   = 1; break;
+                case '0': frame->pressed[dr_key_0]      = 1; break;
+                case '1': frame->pressed[dr_key_1]      = 1; break;
+                case '2': frame->pressed[dr_key_2]      = 1; break;
+                case '3': frame->pressed[dr_key_3]      = 1; break;
+                case '4': frame->pressed[dr_key_4]      = 1; break;
+                case '5': frame->pressed[dr_key_5]      = 1; break;
+                case '6': frame->pressed[dr_key_6]      = 1; break;
+                case '7': frame->pressed[dr_key_7]      = 1; break;
+                case '8': frame->pressed[dr_key_8]      = 1; break;
+                case '9': frame->pressed[dr_key_9]      = 1; break;
+            };
+        }
     }
 
     DR_Init(replay_data);

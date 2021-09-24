@@ -32,13 +32,23 @@ typedef struct {
 } frame_data_t;
 
 typedef struct {
+    int frame_start;
+    int len;
+    char buf[32];
+} username_data_t;
+
+typedef struct {
     int n_frames;
-    int framerate;
+    int n_usernames;
     int n_start;
     int n_record;
+    int framerate;
     int render_frame;
     int render_input;
+    int render_username;
+
     frame_data_t * frames;
+    username_data_t * usernames;
 
     const char * fname_output;
 } replay_data_t;
