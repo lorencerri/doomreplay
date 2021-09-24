@@ -448,6 +448,8 @@ void D_DoomLoop (void)
 		// frame syncronous IO operations
 		I_StartFrame ();
 
+		DR_ProcessInput ();
+
 		TryRunTics (); // will run at least one tic
 
 		S_UpdateSounds (players[consoleplayer].mo);// move positional sounds

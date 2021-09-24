@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 
     FILE *f = fopen(param_input, "rb");
     if (!f) {
-        fprintf(stderr, "Cannot read input file '%s'", param_input);
+        fprintf(stderr, "Cannot read input file '%s'\n", param_input);
         return -2;
     }
 
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
     }
 
     if (in_username) {
-        fprintf(stderr, "Invalid input format : username tags are invalid");
+        fprintf(stderr, "Invalid input format : username tags are invalid\n");
         return -3;
     }
 

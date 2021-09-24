@@ -55,5 +55,6 @@ typedef struct {
 
 void DR_Init(replay_data_t replay_data);
 int  DR_NeedRender(int f);
+void DR_ProcessInput();
 
 #endif //DOOM_REPLAY

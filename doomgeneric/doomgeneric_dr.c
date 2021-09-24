@@ -57,20 +57,6 @@ static void addConvertedKeyToQueue(int pressed, unsigned char key) {
     s_KeyQueueWriteIndex %= KEYQUEUE_SIZE;
 }
 
-static void handleKeyInput() {
-    for (int i = 0; i < dr_key_COUNT; ++i) {
-        if (g_replay_data.frames[g_frame].pressed[i] != g_pressed_last[i]) {
-            int pressed = g_pressed_last[i] ? 0 : 1;
-            addConvertedKeyToQueue(pressed, g_key_map[i]);
-        }
-    }
-
-    memcpy(g_pressed_last, g_replay_data.frames[g_frame].pressed, sizeof(dr_keys_t));
-}
-
-
-void DG_Init() {}
-
 void DR_Init(replay_data_t replay_data) {
     g_key_map[dr_key_escape] = KEY_ESCAPE;
     g_key_map[dr_key_enter ] = KEY_ENTER;
@@ -111,9 +97,24 @@ void DR_Init(replay_data_t replay_data) {
     printf("===============================\n");
 }
 
+void DR_ProcessInput() {
+    if (g_frame < g_replay_data.n_start + g_replay_data.n_record && g_frame < g_replay_data.n_frames) {
+        for (int i = 0; i < dr_key_COUNT; ++i) {
+            if (g_replay_data.frames[g_frame].pressed[i] != g_pressed_last[i]) {
+                int pressed = g_pressed_last[i] ? 0 : 1;
+                addConvertedKeyToQueue(pressed, g_key_map[i]);
+            }
+        }
+
+        memcpy(g_pressed_last, g_replay_data.frames[g_frame].pressed, sizeof(dr_keys_t));
+    }
+}
+
 int DR_NeedRender(int f) {
     return g_frame >= g_replay_data.n_start - f;
 }
+
+void DG_Init() {}
 
 void DG_DrawFrame() {
     if (DR_NeedRender(0)) {
@@ -190,9 +191,9 @@ void DG_DrawFrame() {
     //printf("frame = %d, time = %d, x = %d, diff = %d\n",
     //       g_frame, g_time_us/(g_dt/1000), g_time_us/g_dt_gs, g_time_us/g_dt_gs - g_frame);
 
-    if (g_frame < g_replay_data.n_start + g_replay_data.n_record - 1 && g_frame < g_replay_data.n_frames) {
-        handleKeyInput();
-    } else {
+    g_frame++;
+
+    if (g_frame >= g_replay_data.n_start + g_replay_data.n_record || g_frame >= g_replay_data.n_frames) {
         if (g_fp) {
             pclose(g_fp);
             g_fp = NULL;
@@ -200,8 +201,6 @@ void DG_DrawFrame() {
         printf("Terminating ..\n");
         exit(1);
     }
-
-    g_frame++;
 
     if (g_frame % 1000 == 0) {
         printf("frame = %d\n", g_frame);
