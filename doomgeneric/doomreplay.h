@@ -47,15 +47,15 @@ typedef struct {
     int render_input;
     int render_username;
 
-    frame_data_t * frames;
+    frame_data_t    * frames;
     username_data_t * usernames;
 
     const char * fname_output;
 } replay_data_t;
 
-void DR_Init(replay_data_t replay_data);
-int  DR_NeedRender(int f);
+void DR_Init        (replay_data_t replay_data);
+int  DR_NeedRender  (int f);
 void DR_ProcessInput();
-void DR_UpdateTime(void);
+void DR_UpdateTime  (void);
 
 #endif //DOOM_REPLAY_H

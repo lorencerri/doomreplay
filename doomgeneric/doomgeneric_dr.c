@@ -15,19 +15,21 @@
 #define KEYQUEUE_SIZE 16
 
 static unsigned short s_KeyQueue[KEYQUEUE_SIZE];
-static unsigned int s_KeyQueueWriteIndex = 0;
-static unsigned int s_KeyQueueReadIndex = 0;
+static unsigned int   s_KeyQueueWriteIndex = 0;
+static unsigned int   s_KeyQueueReadIndex  = 0;
 
-static FILE * g_fp           = NULL;
+static FILE * g_fp = NULL;
+
 static const int64_t g_dt    = 35000;
 static const int64_t g_dt_gs = (g_dt/5)/TICRATE; // ensure at least 5 updates per frame
-static int64_t g_time_us     = 0;
-static int32_t g_frame       = 0;    // frame index
-static int32_t g_username    = 0; // username index
 
-static replay_data_t g_replay_data;
+static int64_t g_time_gs     = 0; // current time
+static int32_t g_frame_id    = 0; // frame index
+static int32_t g_username_id = 0; // username index
+
 static dr_keys_t g_pressed_last;
 static dr_keys_t g_key_map;
+static replay_data_t g_replay_data;
 
 static void renderText(uint32_t * screen, const char * text, int xoffs, int yoffs, int ecol) {
     int n = strlen(text);
@@ -96,24 +98,24 @@ void DR_Init(replay_data_t replay_data) {
 }
 
 void DR_ProcessInput() {
-    if (g_frame < g_replay_data.n_start + g_replay_data.n_record && g_frame < g_replay_data.n_frames) {
+    if (g_frame_id < g_replay_data.n_start + g_replay_data.n_record && g_frame_id < g_replay_data.n_frames) {
         for (int i = 0; i < dr_key_COUNT; ++i) {
-            if (g_replay_data.frames[g_frame].pressed[i] != g_pressed_last[i]) {
+            if (g_replay_data.frames[g_frame_id].pressed[i] != g_pressed_last[i]) {
                 int pressed = g_pressed_last[i] ? 0 : 1;
                 addConvertedKeyToQueue(pressed, g_key_map[i]);
             }
         }
 
-        memcpy(g_pressed_last, g_replay_data.frames[g_frame].pressed, sizeof(dr_keys_t));
+        memcpy(g_pressed_last, g_replay_data.frames[g_frame_id].pressed, sizeof(dr_keys_t));
     }
 }
 
 int DR_NeedRender(int f) {
-    return g_frame >= g_replay_data.n_start - f;
+    return g_frame_id >= g_replay_data.n_start - f;
 }
 
 void DR_UpdateTime() {
-    g_time_us += g_dt_gs;
+    g_time_gs += g_dt_gs;
 }
 
 void DG_Init() {}
@@ -150,10 +152,10 @@ void DG_DrawFrame() {
             char t[32];
             t[0] = 0;
             if (g_replay_data.render_frame) {
-                snprintf(t, 32, "%d", g_frame);
+                snprintf(t, 32, "%d", g_frame_id);
             }
             if (g_replay_data.render_input) {
-                unsigned char * pressed =  g_replay_data.frames[g_frame].pressed;
+                unsigned char * pressed =  g_replay_data.frames[g_frame_id].pressed;
                 if (pressed[dr_key_escape]) strcat(t, "x");
                 if (pressed[dr_key_enter])  strcat(t, "e");
                 if (pressed[dr_key_left])   strcat(t, "l");
@@ -181,21 +183,21 @@ void DG_DrawFrame() {
             renderText(DG_ScreenBuffer, t, 1, 0, 0);
 
             if (g_replay_data.render_username) {
-                while (g_username < g_replay_data.n_usernames - 1 && g_frame >= g_replay_data.usernames[g_username + 1].frame_start) ++g_username;
-                renderText(DG_ScreenBuffer, g_replay_data.usernames[g_username].buf, 1, FONT_SIZE_Y, 0);
+                while (g_username_id < g_replay_data.n_usernames - 1 && g_frame_id >= g_replay_data.usernames[g_username_id + 1].frame_start) ++g_username_id;
+                renderText(DG_ScreenBuffer, g_replay_data.usernames[g_username_id].buf, 1, FONT_SIZE_Y, 0);
             }
 
             fwrite((char *) DG_ScreenBuffer, 4*DOOMGENERIC_RESX*DOOMGENERIC_RESY, 1, g_fp);
         }
     }
 
-    //printf("frame = %d\n", g_frame);
+    //printf("frame = %d\n", g_frame_id);
     //printf("frame = %d, time = %d, x = %d, diff = %d\n",
-    //       g_frame, g_time_us/(g_dt/1000), g_time_us/g_dt_gs, g_time_us/g_dt_gs - g_frame);
+    //       g_frame_id, g_time_gs/(g_dt/1000), g_time_gs/g_dt_gs, g_time_gs/g_dt_gs - g_frame_id);
 
-    g_frame++;
+    g_frame_id++;
 
-    if (g_frame >= g_replay_data.n_start + g_replay_data.n_record || g_frame >= g_replay_data.n_frames) {
+    if (g_frame_id >= g_replay_data.n_start + g_replay_data.n_record || g_frame_id >= g_replay_data.n_frames) {
         if (g_fp) {
             pclose(g_fp);
             g_fp = NULL;
@@ -204,8 +206,8 @@ void DG_DrawFrame() {
         exit(1);
     }
 
-    if (g_frame % 1000 == 0) {
-        printf("frame = %d\n", g_frame);
+    if (g_frame_id % 1000 == 0) {
+        printf("frame = %d\n", g_frame_id);
     }
 }
 
@@ -214,7 +216,7 @@ void DG_SleepMs(uint32_t ms) {
 }
 
 uint32_t DG_GetTicksMs() {
-    return g_time_us/(g_dt/1000);
+    return g_time_gs/(g_dt/1000);
 }
 
 int DG_GetKey(int* pressed, unsigned char* doomKey) {
