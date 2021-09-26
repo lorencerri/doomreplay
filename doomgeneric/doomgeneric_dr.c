@@ -6,6 +6,7 @@
 
 #include "i_timer.h"
 
+#include <time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -19,6 +20,8 @@ static unsigned int   s_KeyQueueWriteIndex = 0;
 static unsigned int   s_KeyQueueReadIndex  = 0;
 
 static FILE * g_fp = NULL;
+
+static clock_t g_t_start = 0;
 
 static const int64_t g_dt    = 35000;
 static const int64_t g_dt_gs = (g_dt/5)/TICRATE; // ensure at least 5 updates per frame
@@ -133,6 +136,7 @@ void DG_DrawFrame() {
                      " -pix_fmt bgra -vcodec rawvideo -i -"
                      " -vcodec h264"
                      " -pix_fmt yuv420p"
+                     " -threads 1"
                      " %s", g_replay_data.framerate, DOOMGENERIC_RESX, DOOMGENERIC_RESY, g_replay_data.fname_output);
 
             printf("Starting ffmpeg process: '%s'\n", ffmpegCommandLine);
@@ -195,6 +199,10 @@ void DG_DrawFrame() {
     //printf("frame = %d, time = %d, x = %d, diff = %d\n",
     //       g_frame_id, g_time_gs/(g_dt/1000), g_time_gs/g_dt_gs, g_time_gs/g_dt_gs - g_frame_id);
 
+    if (g_frame_id == 0) {
+        g_t_start = clock();
+    }
+
     g_frame_id++;
 
     if (g_frame_id >= g_replay_data.n_start + g_replay_data.n_record || g_frame_id >= g_replay_data.n_frames) {
@@ -206,8 +214,10 @@ void DG_DrawFrame() {
         exit(1);
     }
 
-    if (g_frame_id % 1000 == 0) {
-        printf("frame = %d\n", g_frame_id);
+    const int n_frames_stats = 1000;
+    if (g_frame_id % n_frames_stats == 0) {
+        printf("frame = %d, speed = %.2f frames/sec\n", g_frame_id, n_frames_stats/(((double)(clock() - g_t_start))/CLOCKS_PER_SEC));
+        g_t_start = clock();
     }
 }
 
