@@ -211,7 +211,7 @@ void DG_DrawFrame() {
             g_fp = NULL;
         }
         printf("Terminating ..\n");
-        exit(1);
+        exit(0);
     }
 
     const int n_frames_stats = 1000;
