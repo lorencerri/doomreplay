@@ -1,8 +1,8 @@
 #ifndef DOOM_REPLAY_FONT
 #define DOOM_REPLAY_FONT
 
-static const int FONT_SIZE_X = 7;
-static const int FONT_SIZE_Y = 16;
+#define FONT_SIZE_X 7
+#define FONT_SIZE_Y 16
 
 static const unsigned char kFontRaster[128][FONT_SIZE_Y*FONT_SIZE_X] = {
     {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, }, // U+0000
