@@ -154,12 +154,15 @@ void DG_DrawFrame() {
 #else
             const char * popenType = "w";
 #endif
+
+#ifndef __EMSCRIPTEN__
             g_fp = popen(ffmpegCommandLine, popenType);
 
             if (g_fp == NULL) {
                 fprintf(stderr, "Failed to start ffmpeg\n");
                 exit(1);
             }
+#endif
         }
         if (g_fp) {
             char t[32];
