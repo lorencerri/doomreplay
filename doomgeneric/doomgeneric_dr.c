@@ -107,6 +107,7 @@ void DR_Init(replay_data_t replay_data) {
     printf("Render frame idx:   %6d\n", g_replay_data.render_frame);
     printf("Render input:       %6d\n", g_replay_data.render_input);
     printf("Render username:    %6d\n", g_replay_data.render_username);
+    printf("Disable video:      %6d\n", g_replay_data.disable_video);
     printf("===============================\n");
 }
 
@@ -133,7 +134,7 @@ int DR_NeedRender(int f) {
 void DR_UpdateTime() {
     g_time_gs += g_dt_gs;
 
-    if (DR_NeedRender(-1)) {
+    if (DR_NeedRender(-1) && g_replay_data.disable_video) {
         static bool isFirst = true;
         if (isFirst) {
             // wait for queued sounds to finish
@@ -160,7 +161,7 @@ void DR_UpdateTime() {
 void DG_Init() {}
 
 void DG_DrawFrame() {
-    if (DR_NeedRender(0)) {
+    if (DR_NeedRender(0) && !g_replay_data.disable_video) {
         if (g_fp == NULL) {
             char ffmpegCommandLine[1024];
 
@@ -246,9 +247,13 @@ void DG_DrawFrame() {
     g_frame_id++;
 
     if (g_frame_id >= g_replay_data.n_start + g_replay_data.n_record || g_frame_id >= g_replay_data.n_frames) {
-        printf("Writing %d freeze frames ..\n", g_replay_data.n_freeze);
-        for (int i = 0; i < g_replay_data.n_freeze; ++i) {
-            fwrite((char *) DG_ScreenBuffer, 4*DOOMGENERIC_RESX*DOOMGENERIC_RESY, 1, g_fp);
+        if (!g_replay_data.disable_video) {
+            printf("Writing %d freeze frames ..\n", g_replay_data.n_freeze);
+            for (int i = 0; i < g_replay_data.n_freeze; ++i) {
+                fwrite((char *) DG_ScreenBuffer, 4*DOOMGENERIC_RESX*DOOMGENERIC_RESY, 1, g_fp);
+            }
+        } else {
+            SDL_Delay(g_replay_data.n_freeze*1000/g_replay_data.framerate);
         }
         if (g_fp) {
             pclose(g_fp);
