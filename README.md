@@ -23,7 +23,7 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 
 ```sh
 doomreplay
-    -iwad <doom1.wad file> # Path for the doom1.wad file
+	-iwad <doom1.wad file> # Path for the doom1.wad file
 	-input <keys> # e.g. `-input "x,,e,,e,,e,,"`
 	-render_frames <count> # The amount of frames to output (defaults to 1)
 	-output <path> # Path for the output file. e.g. `-output ./doomreplay.png` or `-output ./doomreplay.gif`
