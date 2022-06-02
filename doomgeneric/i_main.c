@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     int pidx_nfreeze   = M_CheckParmWithArgs("-nfreeze",   1);
 
     if (!pidx_input) {
-        fprintf(stderr, "Input file must be provided via '-input'\n");
+        fprintf(stderr, "Input must be provided via '-input'\n");
         return -1;
     }
 
@@ -128,27 +128,14 @@ int main(int argc, char **argv)
         replay_data.render_username = 1;
     }
 
-    const char * param_input = myargv[pidx_input + 1];
-
-    FILE *f = fopen(param_input, "rb");
-    if (!f) {
-        fprintf(stderr, "Cannot read input file '%s'\n", param_input);
-        return -2;
-    }
-
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
-
-    char *input = malloc(fsize + 1);
-    fread(input, 1, fsize, f);
-    fclose(f);
+    const char *input = myargv[pidx_input + 1];
+	printf("input: '%s'\n", input);
 
     replay_data.n_frames = 1;
     replay_data.n_usernames = 1;
 
     int in_username = 0;
-    for (int i = 0; i < fsize; ++i) {
+    for (int i = 0; i < strlen(input); ++i) {
         switch (input[i]) {
             case '#': {
                           if (in_username == 0) {
@@ -192,7 +179,7 @@ int main(int argc, char **argv)
     int cur_frame    = 0;
     int cur_username = 0;
 
-    for (int i = 0; i < fsize; ++i) {
+    for (int i = 0; i < strlen(input); ++i) {
         frame_data_t    * frame    = replay_data.frames + cur_frame;
         username_data_t * username = replay_data.usernames + cur_username;
 

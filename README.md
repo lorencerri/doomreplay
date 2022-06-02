@@ -10,7 +10,7 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 
 **TODO**
 
--   [ ] Change the input to be a text file instead of an argument
+-   [x] Change the input to be an argument instead of a text file
 -   [ ] Add a way to generate a gif of the replay that only repeats once
 -   [ ] Add an option to generate a video of the entire replay
 
