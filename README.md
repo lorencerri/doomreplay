@@ -17,7 +17,7 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 **Requirements**
 
 -   `doom1.wad` file (they're available on GitHub)
--   make if you to build the library
+-   `make` if you to build the library
 
 **Usage**
 
