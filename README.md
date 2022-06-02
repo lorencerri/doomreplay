@@ -17,12 +17,16 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 **Requirements**
 
 -   `doom1.wad` file (they're available on GitHub)
--   `make` if you to build the library
+-   `make` if you want to build the library
 
 **Usage**
 
-```
-doomreplay -iwad ./doom1.wad -input "...keys" -render_last_frame -output output.png
+```sh
+doomreplay
+    -iwad <doom1.wad file> # Path for the doom1.wad file
+	-input <keys> # e.g. `-input "x,,e,,e,,e,,"`
+	-render_frames <count> # The amount of frames to output (defaults to 1)
+	-output <path> # Path for the output file. e.g. `-output ./doomreplay.png` or `-output ./doomreplay.gif`
 ```
 
 **Build**
