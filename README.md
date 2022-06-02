@@ -24,3 +24,10 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 ```
 doomreplay -iwad ./doom1.wad -input "...keys" -render_last_frame -output output.png
 ```
+
+**Build**
+
+```
+cd doomgeneric
+make -f Makefile.dr
+```
