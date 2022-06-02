@@ -31,3 +31,25 @@ doomreplay -iwad ./doom1.wad -input "...keys" -render_last_frame -output output.
 cd doomgeneric
 make -f Makefile.dr
 ```
+
+**Input**
+
+```
+,   - new frame
+x   - escape
+e   - enter
+l   - left
+r   - right
+u   - up
+d   - down
+a   - alt
+s   - shift
+p   - use
+f   - fire
+t   - tab
+y   - yes
+n   - no
+<   - strafe left
+>   - strafe right
+2-7 - weapons
+```
