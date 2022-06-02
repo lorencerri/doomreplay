@@ -13,3 +13,14 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 -   [ ] Change the input to be a text file instead of an argument
 -   [ ] Add a way to generate a gif of the replay that only repeats once
 -   [ ] Add an option to generate a video of the entire replay
+
+**Requirements**
+
+-   `doom1.wad` file (they're available on GitHub)
+-   make if you to build the library
+
+**Usage**
+
+```
+doomreplay -iwad ./doom1.wad -input "...keys" -render_last_frame -output output.png
+```
