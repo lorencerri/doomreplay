@@ -50,7 +50,7 @@ f   - fire
 t   - tab
 y   - yes
 n   - no
-<   - strafe left
->   - strafe right
+j   - strafe left
+k   - strafe right
 2-7 - weapons
 ```

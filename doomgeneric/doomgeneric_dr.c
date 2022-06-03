@@ -218,8 +218,8 @@ void DG_DrawFrame() {
                 if (pressed[dr_key_tab]) strcat(t, "t");
                 if (pressed[dr_key_yes]) strcat(t, "y");
                 if (pressed[dr_key_no]) strcat(t, "n");
-                if (pressed[dr_key_strafe_left]) strcat(t, "<");
-                if (pressed[dr_key_strafe_right]) strcat(t, ">");
+                if (pressed[dr_key_strafe_left]) strcat(t, "j");
+                if (pressed[dr_key_strafe_right]) strcat(t, "k");
                 if (pressed[dr_key_0]) strcat(t, "0");
                 if (pressed[dr_key_1]) strcat(t, "1");
                 if (pressed[dr_key_2]) strcat(t, "2");
