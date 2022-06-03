@@ -27,6 +27,7 @@
 #ifdef DOOMREPLAY
 #include <stdlib.h>
 #include <string.h>
+
 #include "doomreplay.h"
 #endif
 //
@@ -35,15 +36,13 @@
 // calls all startup code, parses command line options.
 //
 
-void D_DoomMain (void);
+void D_DoomMain(void);
 
 void M_FindResponseFile(void);
 
 void dg_Create();
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     // save arguments
 
     myargc = argc;
@@ -52,12 +51,13 @@ int main(int argc, char **argv)
 #ifdef DOOMREPLAY
     replay_data_t replay_data;
 
-    int pidx_input     = M_CheckParmWithArgs("-input",     1);
-    int pidx_output    = M_CheckParmWithArgs("-output",    1);
+    int pidx_input = M_CheckParmWithArgs("-input", 1);
+    int pidx_output = M_CheckParmWithArgs("-output", 1);
     int pidx_framerate = M_CheckParmWithArgs("-framerate", 1);
-    int pidx_nstart    = M_CheckParmWithArgs("-nstart",    1);
-    int pidx_nrecord   = M_CheckParmWithArgs("-nrecord",   1);
-    int pidx_nfreeze   = M_CheckParmWithArgs("-nfreeze",   1);
+    int pidx_nstart = M_CheckParmWithArgs("-nstart", 1);
+    int pidx_nrecord = M_CheckParmWithArgs("-nrecord", 1);
+    int pidx_nfreeze = M_CheckParmWithArgs("-nfreeze", 1);
+    int pidx_nthframe = M_CheckParmWithArgs("-nthframe", 1);
 
     if (!pidx_input) {
         fprintf(stderr, "Input must be provided via '-input'\n");
@@ -65,11 +65,22 @@ int main(int argc, char **argv)
     }
 
     if (!pidx_output) {
-        fprintf(stderr, "Please specify output file for storing the generated video via '-output'\n");
+        fprintf(stderr,
+                "Please specify output file for storing the generated video "
+                "via '-output'\n");
         return -1;
     }
 
     replay_data.fname_output = myargv[pidx_output + 1];
+
+    // extension
+    const char *dot = strrchr(replay_data.fname_output, '.');
+    if (dot) {
+        replay_data.fname_ext = dot + 1;
+    } else {
+        fprintf(stderr, "Please specify an extension for the output file\n");
+        return -1;
+    }
 
     // framerate
     replay_data.framerate = 35;
@@ -89,7 +100,7 @@ int main(int argc, char **argv)
     }
 
     // n frames to record
-    replay_data.n_record = 10*replay_data.framerate;
+    replay_data.n_record = 10 * replay_data.framerate;
     if (pidx_nrecord) {
         replay_data.n_record = atoi(myargv[pidx_nrecord + 1]);
     }
@@ -129,7 +140,7 @@ int main(int argc, char **argv)
     }
 
     const char *input = myargv[pidx_input + 1];
-	printf("input: '%s'\n", input);
+    printf("input: '%s'\n", input);
 
     replay_data.n_frames = 1;
     replay_data.n_usernames = 1;
@@ -138,18 +149,18 @@ int main(int argc, char **argv)
     for (int i = 0; i < strlen(input); ++i) {
         switch (input[i]) {
             case '#': {
-                          if (in_username == 0) {
-                              in_username = 1;
-                          } else {
-                              ++replay_data.n_usernames;
-                              in_username = 0;
-                          }
-                      } break;
+                if (in_username == 0) {
+                    in_username = 1;
+                } else {
+                    ++replay_data.n_usernames;
+                    in_username = 0;
+                }
+            } break;
             case ',': {
-                          if (in_username == 0) {
-                              ++replay_data.n_frames;
-                          }
-                      } break;
+                if (in_username == 0) {
+                    ++replay_data.n_frames;
+                }
+            } break;
         };
     }
 
@@ -162,8 +173,28 @@ int main(int argc, char **argv)
         replay_data.n_start = replay_data.n_frames - replay_data.n_record;
     }
 
-    replay_data.frames    = malloc(replay_data.n_frames*sizeof(frame_data_t));
-    replay_data.usernames = malloc(replay_data.n_usernames*sizeof(username_data_t));
+    replay_data.frames = malloc(replay_data.n_frames * sizeof(frame_data_t));
+    replay_data.usernames =
+        malloc(replay_data.n_usernames * sizeof(username_data_t));
+
+    // render every nth frame
+    replay_data.nthframe = 1;
+    if (pidx_nthframe) {
+        replay_data.nthframe = atoi(myargv[pidx_nthframe + 1]);
+    }
+
+    if (replay_data.nthframe == 0) {
+        fprintf(stderr, "Invalid nthframe: %d (Cannot be zero)\n",
+                replay_data.nthframe);
+        return -1;
+    }
+
+    if (replay_data.nthframe > replay_data.n_frames) {
+        fprintf(stderr,
+                "Invalid nthframe: %d (Cannot be higher than total frames)\n",
+                replay_data.nthframe);
+        return -1;
+    }
 
     for (int f = 0; f < replay_data.n_frames; ++f) {
         for (int i = 0; i < dr_key_COUNT; ++i) {
@@ -172,61 +203,113 @@ int main(int argc, char **argv)
     }
 
     for (int i = 0; i < replay_data.n_usernames; ++i) {
-        replay_data.usernames[i].len    = 0;
+        replay_data.usernames[i].len = 0;
         replay_data.usernames[i].buf[0] = 0;
     }
 
-    int cur_frame    = 0;
+    int cur_frame = 0;
     int cur_username = 0;
 
     for (int i = 0; i < strlen(input); ++i) {
-        frame_data_t    * frame    = replay_data.frames + cur_frame;
-        username_data_t * username = replay_data.usernames + cur_username;
+        frame_data_t *frame = replay_data.frames + cur_frame;
+        username_data_t *username = replay_data.usernames + cur_username;
 
         if (in_username) {
             switch (input[i]) {
                 case '#': {
-                              in_username = 0;
-                          } break;
+                    in_username = 0;
+                } break;
                 default: {
-                             username->buf[username->len] = input[i];
-                             username->len++;
-                             username->buf[username->len] = 0;
-                         } break;
+                    username->buf[username->len] = input[i];
+                    username->len++;
+                    username->buf[username->len] = 0;
+                } break;
             };
         } else {
             switch (input[i]) {
                 case '#': {
-                              in_username = 1;
-                              cur_username++;
-                              replay_data.usernames[cur_username].frame_start = cur_frame;
-                          } break;
-                case ',': ++cur_frame;                             break;
-                case 'x': frame->pressed[dr_key_escape]       = 1; break;
-                case 'e': frame->pressed[dr_key_enter]        = 1; break;
-                case 'l': frame->pressed[dr_key_left]         = 1; break;
-                case 'r': frame->pressed[dr_key_right]        = 1; break;
-                case 'u': frame->pressed[dr_key_up]           = 1; break;
-                case 'd': frame->pressed[dr_key_down]         = 1; break;
-                case 'a': frame->pressed[dr_key_alt]          = 1; break;
-                case 's': frame->pressed[dr_key_shift]        = 1; break;
-                case 'p': frame->pressed[dr_key_use]          = 1; break;
-                case 'f': frame->pressed[dr_key_fire]         = 1; break;
-                case 't': frame->pressed[dr_key_tab]          = 1; break;
-                case 'y': frame->pressed[dr_key_yes]          = 1; break;
-                case 'n': frame->pressed[dr_key_no]           = 1; break;
-                case '<': frame->pressed[dr_key_strafe_left]  = 1; break;
-                case '>': frame->pressed[dr_key_strafe_right] = 1; break;
-                case '0': frame->pressed[dr_key_0]            = 1; break;
-                case '1': frame->pressed[dr_key_1]            = 1; break;
-                case '2': frame->pressed[dr_key_2]            = 1; break;
-                case '3': frame->pressed[dr_key_3]            = 1; break;
-                case '4': frame->pressed[dr_key_4]            = 1; break;
-                case '5': frame->pressed[dr_key_5]            = 1; break;
-                case '6': frame->pressed[dr_key_6]            = 1; break;
-                case '7': frame->pressed[dr_key_7]            = 1; break;
-                case '8': frame->pressed[dr_key_8]            = 1; break;
-                case '9': frame->pressed[dr_key_9]            = 1; break;
+                    in_username = 1;
+                    cur_username++;
+                    replay_data.usernames[cur_username].frame_start = cur_frame;
+                } break;
+                case ',':
+                    ++cur_frame;
+                    break;
+                case 'x':
+                    frame->pressed[dr_key_escape] = 1;
+                    break;
+                case 'e':
+                    frame->pressed[dr_key_enter] = 1;
+                    break;
+                case 'l':
+                    frame->pressed[dr_key_left] = 1;
+                    break;
+                case 'r':
+                    frame->pressed[dr_key_right] = 1;
+                    break;
+                case 'u':
+                    frame->pressed[dr_key_up] = 1;
+                    break;
+                case 'd':
+                    frame->pressed[dr_key_down] = 1;
+                    break;
+                case 'a':
+                    frame->pressed[dr_key_alt] = 1;
+                    break;
+                case 's':
+                    frame->pressed[dr_key_shift] = 1;
+                    break;
+                case 'p':
+                    frame->pressed[dr_key_use] = 1;
+                    break;
+                case 'f':
+                    frame->pressed[dr_key_fire] = 1;
+                    break;
+                case 't':
+                    frame->pressed[dr_key_tab] = 1;
+                    break;
+                case 'y':
+                    frame->pressed[dr_key_yes] = 1;
+                    break;
+                case 'n':
+                    frame->pressed[dr_key_no] = 1;
+                    break;
+                case '<':
+                    frame->pressed[dr_key_strafe_left] = 1;
+                    break;
+                case '>':
+                    frame->pressed[dr_key_strafe_right] = 1;
+                    break;
+                case '0':
+                    frame->pressed[dr_key_0] = 1;
+                    break;
+                case '1':
+                    frame->pressed[dr_key_1] = 1;
+                    break;
+                case '2':
+                    frame->pressed[dr_key_2] = 1;
+                    break;
+                case '3':
+                    frame->pressed[dr_key_3] = 1;
+                    break;
+                case '4':
+                    frame->pressed[dr_key_4] = 1;
+                    break;
+                case '5':
+                    frame->pressed[dr_key_5] = 1;
+                    break;
+                case '6':
+                    frame->pressed[dr_key_6] = 1;
+                    break;
+                case '7':
+                    frame->pressed[dr_key_7] = 1;
+                    break;
+                case '8':
+                    frame->pressed[dr_key_8] = 1;
+                    break;
+                case '9':
+                    frame->pressed[dr_key_9] = 1;
+                    break;
             };
         }
     }
@@ -238,11 +321,10 @@ int main(int argc, char **argv)
 
     // start doom
     printf("Starting D_DoomMain\r\n");
-    
-	dg_Create();
 
-	D_DoomMain ();
+    dg_Create();
+
+    D_DoomMain();
 
     return 0;
 }
-

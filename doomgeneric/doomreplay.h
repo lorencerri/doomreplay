@@ -48,20 +48,22 @@ typedef struct {
     int n_start;
     int n_record;
     int n_freeze;
+    int nthframe;
     int framerate;
     int render_frame;
     int render_input;
     int render_username;
 
-    frame_data_t    * frames;
-    username_data_t * usernames;
+    frame_data_t* frames;
+    username_data_t* usernames;
 
-    const char * fname_output;
+    const char* fname_output;
+    const char* fname_ext;
 } replay_data_t;
 
-void DR_Init        (replay_data_t replay_data);
-int  DR_NeedRender  (int f);
+void DR_Init(replay_data_t replay_data);
+int DR_NeedRender(int f);
 void DR_ProcessInput();
-void DR_UpdateTime  (void);
+void DR_UpdateTime(void);
 
-#endif //DOOM_REPLAY_H
+#endif  // DOOM_REPLAY_H

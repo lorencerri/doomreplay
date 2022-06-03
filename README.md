@@ -4,29 +4,25 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 
 **Changes**
 
--   Input is passed in as an argument instead of a text file
--   Output is either an image or gif of last X amount of frames of the replay
--   Option to generate an .mp4 video of the entire replay
-
-**TODO**
-
--   [x] Change the input to be an argument instead of a text file
--   [ ] Add a way to generate a gif of the replay that only repeats once
--   [ ] Add an option to generate a video of the entire replay
-
-**Requirements**
-
--   `doom1.wad` file (they're available on GitHub)
--   `make` if you want to build the library
+-   Input is an argument instead of a file
+-   Added `-renderNthFrame <number>` option
+-   Added `.gif` output support
+-   Added `.png` output support
+    -   Will only render one frame. If you want to render the last frame, set `-nrecord 1`
 
 **Usage**
 
 ```sh
 doomreplay
-	-iwad <doom1.wad file> # Path for the doom1.wad file
+	-iwad <doom1.wad file> # Path for the doom1.wad file (you can find this somewhere else on GitHub)
 	-input <keys> # e.g. `-input "x,,e,,e,,e,,"`
-	-render_frames <count> # The amount of frames to output (defaults to 1)
+	-nrecord <number> # Maximum amount of frames from ending to output e.g. `-nrecord 10` would record the last 10 frames
+	-framerate <number> # Amount of frames rendered per second for FFMPEG e.g. `-framerate 30`
+	-renderNthFrame <number> # Render every Nth frame e.g. `-renderNthFrame 10` would render every 2nd frame. If you can set -nrecord, you can get a static maxmimum filesize e.g. `-nrecord 1000 -renderNthFrame 10` would render the last 1000 frames, but only every 10th frame of the replay.
 	-output <path> # Path for the output file. e.g. `-output ./doomreplay.png` or `-output ./doomreplay.gif`
+	-render_frame # Required
+	-render_input # Required
+	-render_username # Required
 ```
 
 **Build**
