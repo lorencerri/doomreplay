@@ -105,6 +105,10 @@ int main(int argc, char **argv) {
         replay_data.n_record = atoi(myargv[pidx_nrecord + 1]);
     }
 
+    if (strcmp(g_replay_data.fname_ext, "png") == 0) {
+        replay_data.n_record = 1;
+    }
+
     if (replay_data.n_record <= 0) {
         fprintf(stderr, "Invalid nrecord: %d\n", replay_data.n_record);
         return -1;
