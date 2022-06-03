@@ -10,6 +10,7 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
   - You can use `-renderNthFrame <number>` to optimize the .gif filesize
 - Added `.png` output support
   - This will only render the last frame
+- Remapped strafe left to 'j' and strafe right to 'k'
 
 **Usage** <br> _See [/examples](https://github.com/lorencerri/doomreplay/tree/master/examples)_
 
