@@ -165,6 +165,7 @@ void DG_DrawFrame() {
                          " -pix_fmt bgra -vcodec rawvideo -i -"
                          " -pix_fmt bgr8"
                          " -threads 1"
+                         " -loop -1"
                          " %s",
                          g_replay_data.framerate, DOOMGENERIC_RESX,
                          DOOMGENERIC_RESY, g_replay_data.fname_output);
