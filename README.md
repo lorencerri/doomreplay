@@ -11,8 +11,7 @@ A fork of [@ggerganov/doomreplay](https://github.com/ggerganov/doomreplay), with
 -   Added `.png` output support.
     -   This will only render the last frame.
 
-**Usage**
-See _[/examples](https://github.com/lorencerri/doomreplay/tree/master/examples)_.
+**Usage** <br> See _[/examples](https://github.com/lorencerri/doomreplay/tree/master/examples)_.
 
 ```sh
 doomreplay
