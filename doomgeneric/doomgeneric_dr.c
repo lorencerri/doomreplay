@@ -163,7 +163,7 @@ void DG_DrawFrame() {
                          " -y -f rawvideo -framerate %d"
                          " -s %dx%d"
                          " -pix_fmt bgra -vcodec rawvideo -i -"
-                         " -pix_fmt yuv420p"
+                         " -pix_fmt bgr8"
                          " -threads 1"
                          " %s",
                          g_replay_data.framerate, DOOMGENERIC_RESX,
