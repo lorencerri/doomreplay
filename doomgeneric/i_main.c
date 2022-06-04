@@ -278,10 +278,10 @@ int main(int argc, char **argv) {
                 case 'n':
                     frame->pressed[dr_key_no] = 1;
                     break;
-                case '<':
+                case 'j':
                     frame->pressed[dr_key_strafe_left] = 1;
                     break;
-                case '>':
+                case 'k':
                     frame->pressed[dr_key_strafe_right] = 1;
                     break;
                 case '0':
